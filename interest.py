@@ -154,6 +154,34 @@ def find_grid(workscreen):
 
     return workscreen, boxes
 
+def bump_contrast(image):
+    #-----Converting image to LAB Color model----------------------------------- 
+    lab= cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    # cv2.imshow("lab",lab)
+
+    #-----Splitting the LAB image to different channels-------------------------
+    l, a, b = cv2.split(lab)
+    # cv2.imshow('l_channel', l)
+    # cv2.imshow('a_channel', a)
+    # cv2.imshow('b_channel', b)
+
+    #-----Applying CLAHE to L-channel-------------------------------------------
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+    cl = clahe.apply(l)
+    # cv2.imshow('CLAHE output', cl)
+
+    #-----Merge the CLAHE enhanced L-channel with the a and b channel-----------
+    limg = cv2.merge((cl,a,b))
+    # cv2.imshow('limg', limg)
+
+    #-----Converting image from LAB Color model to RGB model--------------------
+    final = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
+    # cv2.imshow('final', final)
+
+    return final
+
+
+
 def readout(boxes, model):
 
     onebox = list(boxes[0][0] + boxes[0][1])
@@ -161,17 +189,25 @@ def readout(boxes, model):
 
 
     image = np.array(ImageGrab.grab(bbox=tuple(onebox)))
+    # contrast
+    # image = bump_contrast(image)
+
+    
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     img_gray = (255 - img_gray)
 
-    image = cv2.resize(img_gray, (8, 8)) 
+    # black and white
+    ret, bw_image = cv2.threshold(img_gray, 127,255,cv2.THRESH_BINARY)
+
+    image = cv2.resize(bw_image, (8, 8)) 
     print(image)
     prediction = model.predict_proba(flatten_digit.reshape(1, -1))
     print(prediction)
     prediction = list(prediction)
     print(prediction.index(max(prediction)))
 
-    return img_gray, prediction
+
+    return bw_image, prediction
     
 
 def main():
