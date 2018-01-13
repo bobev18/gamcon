@@ -1,4 +1,19 @@
 # https://gabrielecirulli.github.io/2048/
+# Initial concept:
+#  Recognize the value at each cell to build representation of the state
+# Issues: 
+#  1. due to the difference in contrast it's difficult to get uniformity between samples of different digits
+#  2. there is no variation in the digits, so MNIST type of approach is overkill
+#  3. considering the sample generation, it's obvious I can detect the number by the color - ML not needed.
+#  
+# New concept:
+#  use a scaled down image of the state, and input it as pixels 64x64 should do
+#  gamescore will have to be aquired for the purpose of Deep Q Learning
+#   (https://www.youtube.com/watch?v=79pmNdyxEGo)
+#    - capture samples of the digits and train recognizer
+#    - parsing from HTML will not work as it's updated by JS not via HTTP
+
+
 import numpy as np
 from PIL import ImageGrab
 import cv2
