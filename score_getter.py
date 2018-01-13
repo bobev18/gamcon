@@ -23,11 +23,59 @@ import pyautogui
 
 GRID_COLOR = [185, 172, 160]
 
-def detect_rois(image, grid_color=GRID_COLOR):
+def split_rois(image, grid_color=GRID_COLOR):
     # there are two regions we want:
     # 1. the big grid
     # 2. the score box
     # both are displayed in boxes defined by the GRID_COLOR
+
+    def find_range_start_end(sumlist):
+        region_detected = False
+        region_start = 0
+        for i in range(len(sumlist)):
+            if sumlist[i] > 0 and not region_detected:
+                region_detected = True
+                region_start = i
+
+            if sumlist[i] == 0 and region_detected:
+                break
+
+        return region_start, i
+        
+
+    # cut horizontally
+    workscreen = col_filter(image, grid_color, threshold=2)
+    h_sums = workscreen.sum(1)
+
+    score_screen_start_y, split_at_y = find_range_start_end(h_sums)
+
+    # start_x_score = int(image.shape[0]/3)
+    # end_x_score = image.shape[0]
+    # start_y_score = 0
+    # end_y_score = split_at_y
+
+    # print(start_x_score,end_x_score,start_y_score,end_y_score)
+    # print(image.shape)
+
+    # increased best score tends to push the score to the left
+    # score_screen = image[score_screen_start_y:split_at_y, int(image.shape[1]/3):image.shape[1]]
+    score_screen = image[score_screen_start_y:split_at_y]
+
+    # additionally cut vertically the score screen from the best score
+    # allso cut in half vertically to drop the "score" label
+    workscreen = col_filter(score_screen, grid_color, threshold=2)
+    v_sums = workscreen.sum(0)
+    score_screen_start_x, score_screen_end_x = find_range_start_end(v_sums)
+    score_screen = score_screen[int(score_screen.shape[0]/2):score_screen.shape[0],
+                                 score_screen_start_x:score_screen_end_x]
+
+    # cv2.imwrite('samples\score_digits.png', cv2.cvtColor(score_screen, cv2.COLOR_BGR2RGB))
+
+    grid_screen = image[split_at_y:]
+
+    return score_screen, grid_screen, split_at_y
+
+def digit_splitter(image):
     pass
 
 def col_filter(image, color, threshold=20):
@@ -72,38 +120,35 @@ def output(image, some_color, coords, convert=False, indicator=False):
     if indicator:
         cv2.circle(work_image, tuple([coords[0]-50, coords[1]-50]), 10, [255,0,0])
     
-    vertices = np.array([[100,100], [150,100], [150,150], [100,150]], np.int32)
-    cv2.fillPoly(work_image, [vertices], some_color)
-    vertices = np.array([[200,100], [250,100], [250,150], [200,150]], np.int32)
-    inverted_color = some_color
-    if isinstance(some_color, list):
-        inverted_color = [ z for z in some_color[::-1] ]
-    else:
-        inverted = 255 - some_color
-    cv2.fillPoly(work_image, [vertices], inverted_color)
+        vertices = np.array([[100,100], [150,100], [150,150], [100,150]], np.int32)
+        cv2.fillPoly(work_image, [vertices], some_color)
+        vertices = np.array([[200,100], [250,100], [250,150], [200,150]], np.int32)
+        inverted_color = some_color
+        if isinstance(some_color, list):
+            inverted_color = [ z for z in some_color[::-1] ]
+        else:
+            inverted = 255 - some_color
+        cv2.fillPoly(work_image, [vertices], inverted_color)
 
     return work_image
 
-def find_grid(workscreen):
+def find_grid(workscreen, y_offset):
     # detects the grid
     workscreen = col_filter(workscreen, GRID_COLOR, threshold=2)
     workscreen = corner_filter(workscreen)
+
     # mat = np.matrix(workscreen)
     v_sums = workscreen.sum(0)
     h_sums = workscreen.sum(1)
 
-    for i, hs in enumerate(h_sums.flatten()):
-        print(i, hs)
-
-    print('-'*10)
-    for i, vs in enumerate(v_sums):
-        print(i, vs)
-
     ys = h_sums.argsort()[-8:]
     xs = v_sums.argsort()[-8:]
-    
+
     xs = np.sort(xs)
     ys = np.sort(ys)
+
+    # adjust the grid boxes with the offset of the ROI region
+    ys = [ z+y_offset for z in ys ]
 
     # print('xs', xs, '         ys', ys)
 
@@ -143,8 +188,11 @@ def readout(boxes):
     
     return bw_image
 
+
+
 def main():
     grid = []
+    score_screen = []
     pick = GRID_COLOR
     coords = [170,300]
     last_time = time.time()
@@ -164,9 +212,9 @@ def main():
             print('Loop took {} seconds'.format(time.time()-last_time), coords, pick)
 
         last_time = time.time()
-        # cv2.imshow('window', new_screen)
-        # cv2.imshow('window2', cv2.cvtColor(screen, cv2.COLOR_BGR2RGB))
-        cv2.imshow('window2', output(workscreen, pick, coords, indicator=indicator))
+        cv2.imshow('window', output(workscreen, pick, coords, indicator=indicator))
+        if len(score_screen) > 0:
+            cv2.imshow('window2', score_screen)
         if cv2.waitKey(25) & 0xFF == ord('r'): #reset to "fresh" screen
             workscreen = screen.copy()
 
@@ -181,8 +229,9 @@ def main():
             workscreen = corner_filter(workscreen)
             print(workscreen)
 
-        if cv2.waitKey(25) & 0xFF == ord('o'):
-            workscreen, grid = find_grid(screen.copy())
+        if cv2.waitKey(25) & 0xFF == ord('t'):    #trigger processing
+            score_screen, grid_screen, y_offset = split_rois(screen)
+            workscreen, grid = find_grid(grid_screen.copy(), y_offset)
 
         if cv2.waitKey(25) & 0xFF == ord('p'):
             pick = col_pick(workscreen, coords)
