@@ -20,8 +20,11 @@ import cv2
 import time
 from directkeys import ReleaseKey, PressKey, W, A, S, D
 import pyautogui
+import os
 
 GRID_COLOR = [185, 172, 160]
+SAMPLE_FOLDER = 'samples'
+SCORE_FILENAME = 'score_digits.png'
 
 def split_rois(image, grid_color=GRID_COLOR):
     # there are two regions we want:
@@ -69,11 +72,13 @@ def split_rois(image, grid_color=GRID_COLOR):
     score_screen = score_screen[int(score_screen.shape[0]/2):score_screen.shape[0],
                                  score_screen_start_x:score_screen_end_x]
 
-    # cv2.imwrite('samples\score_digits.png', cv2.cvtColor(score_screen, cv2.COLOR_BGR2RGB))
 
     grid_screen = image[split_at_y:]
 
     return score_screen, grid_screen, split_at_y
+
+def save_score(score_screen):
+    cv2.imwrite(os.path.join(SAMPLE_FOLDER, SCORE_FILENAME), cv2.cvtColor(score_screen, cv2.COLOR_BGR2RGB))
 
 def digit_splitter(image):
     pass
@@ -215,40 +220,44 @@ def main():
         cv2.imshow('window', output(workscreen, pick, coords, indicator=indicator))
         if len(score_screen) > 0:
             cv2.imshow('window2', score_screen)
-        if cv2.waitKey(25) & 0xFF == ord('r'): #reset to "fresh" screen
+
+        if cv2.waitKey(5) & 0xFF == ord('r'): #reset to "fresh" screen
             workscreen = screen.copy()
 
-        if cv2.waitKey(25) & 0xFF == ord('i'): #toggle color picker indicator
+        if cv2.waitKey(5) & 0xFF == ord('i'): #toggle color picker indicator
             indicator = not indicator
         
-        if cv2.waitKey(25) & 0xFF == ord('f'):
+        if cv2.waitKey(5) & 0xFF == ord('f'):
             # workscreen = col_filter(screen, pick, threshold=5)
             workscreen = col_filter(workscreen, pick, threshold=2)
 
-        if cv2.waitKey(25) & 0xFF == ord('g'):
+        if cv2.waitKey(5) & 0xFF == ord('g'):
             workscreen = corner_filter(workscreen)
             print(workscreen)
 
-        if cv2.waitKey(25) & 0xFF == ord('t'):    #trigger processing
+        if cv2.waitKey(5) & 0xFF == ord('t'):    #trigger processing
             score_screen, grid_screen, y_offset = split_rois(screen)
             workscreen, grid = find_grid(grid_screen.copy(), y_offset)
 
-        if cv2.waitKey(25) & 0xFF == ord('p'):
+        if cv2.waitKey(5) & 0xFF == ord('p'):
             pick = col_pick(workscreen, coords)
 
-        if cv2.waitKey(25) & 0xFF == ord('w'):
+        if cv2.waitKey(5) & 0xFF == ord('w'):
             coords[1] -= 10
 
-        if cv2.waitKey(25) & 0xFF == ord('a'):
+        if cv2.waitKey(5) & 0xFF == ord('a'):
             coords[0] -= 10
 
-        if cv2.waitKey(25) & 0xFF == ord('s'):
+        if cv2.waitKey(5) & 0xFF == ord('s'):
             coords[1] += 10
 
-        if cv2.waitKey(25) & 0xFF == ord('d'):
+        if cv2.waitKey(5) & 0xFF == ord('d'):
             coords[0] +=10
+
+        if cv2.waitKey(5) & 0xFF == ord('z'):
+            save_score(score_screen)
             
-        if cv2.waitKey(25) & 0xFF == ord('q'):
+        if cv2.waitKey(5) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
             break
 
