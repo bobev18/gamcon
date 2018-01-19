@@ -20,11 +20,45 @@ import cv2
 import time
 from directkeys import ReleaseKey, PressKey, W, A, S, D
 import pyautogui
-import os
+import os, pickle
 
 GRID_COLOR = [185, 172, 160]
 SAMPLE_FOLDER = 'samples'
 SCORE_FILENAME = 'score_digits.png'
+MIN_CONTOUR_AREA = 100
+RESIZED_IMAGE_WIDTH = 20
+RESIZED_IMAGE_HEIGHT = 30
+SCORE_MODEL_FILENAME = 'score_model.pickle'
+
+# load score model
+try:
+    with open(SCORE_MODEL_FILENAME, 'rb') as f:
+        score_model = pickle.load(f)
+except FileNotFoundError:
+    print('failed to load score model from', SCORE_MODEL_FILENAME)
+    exit(1)
+
+def preprocess_score_image(original):
+    gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
+    _, bw_image = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+    image = bw_image.copy()
+    img_contours, npa_contours, npa_hierarchy = cv2.findContours(image,
+                                                 cv2.RETR_EXTERNAL,
+                                                 cv2.CHAIN_APPROX_SIMPLE)
+
+    flattened_digits =  np.empty((0, RESIZED_IMAGE_WIDTH * RESIZED_IMAGE_HEIGHT), dtype=np.int)
+
+    for i, npa_contour in enumerate(npa_contours):
+        if cv2.contourArea(npa_contour) > MIN_CONTOUR_AREA:
+            [intX, intY, intW, intH] = cv2.boundingRect(npa_contour)
+
+            cv2.rectangle(original, (intX, intY), (intX+intW,intY+intH), (0, 0, 255), 2)
+            imgROI = image[intY:intY+intH, intX:intX+intW]
+            resized = cv2.resize(imgROI, (RESIZED_IMAGE_WIDTH, RESIZED_IMAGE_HEIGHT))
+            flattened = resized.reshape((1, RESIZED_IMAGE_WIDTH * RESIZED_IMAGE_HEIGHT))
+            flattened_digits = np.append(flattened_digits, flattened, 0)
+
+    return flattened_digits
 
 def split_rois(image, grid_color=GRID_COLOR):
     # there are two regions we want:
@@ -254,8 +288,14 @@ def main():
         if cv2.waitKey(5) & 0xFF == ord('d'):
             coords[0] +=10
 
+        if cv2.waitKey(5) & 0xFF == ord('y'): 
+            # break score into separate digits
+            flat_score_digits = preprocess_score_image(score_screen)
+            print([ chr(score_model.predict([z])) for z in flat_score_digits ])
+
         if cv2.waitKey(5) & 0xFF == ord('z'):
             save_score(score_screen)
+            print('SAVED')
             
         if cv2.waitKey(5) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
