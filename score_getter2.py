@@ -242,16 +242,17 @@ def main():
     indicator = False
     while(True):
         screen =  np.array(ImageGrab.grab(bbox=(50, 50, 1200, 1400)))
+
+        score_screen, grid_screen, y_offset = split_rois(screen)
+        flat_score_digits = preprocess_score_image(score_screen)
+        score = int(''.join([ chr(score_model.predict([z])) for z in flat_score_digits ]))
+
+
         # new_screen = process_img(screen)
         if len(workscreen) == 0:
             workscreen = screen.copy()
-        if len(grid) > 0:
-            w3 = readout(grid)
-            cv2.imshow('window3', w3)
-            
-            print('Loop took {} seconds'.format(time.time()-last_time), coords, pick)
-        else:
-            print('Loop took {} seconds'.format(time.time()-last_time), coords, pick)
+    
+        print('Loop took {} seconds'.format(time.time()-last_time), score)
 
         last_time = time.time()
         cv2.imshow('window', output(workscreen, pick, coords, indicator=indicator))
