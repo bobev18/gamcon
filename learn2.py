@@ -8,6 +8,8 @@
 # Since the input delay/time is not significant for the game result,
 # I will make 3 screen captures per action input (adding dely between action and screen read is an alternative)
 
+# remake DQL as in https://github.com/NoahLidell/math-of-intelligence/blob/master/q_learning/cartpole_cnn_qlearning.ipynb
+
 import numpy as np
 from PIL import ImageGrab
 import cv2
@@ -205,7 +207,7 @@ def main():
     # # input_shape=(3,)+STATE_SIZE
     # model.add(Conv2D(16, kernel_size=(3,3), input_shape=(34,34,32), activation='relu'))
 
-    model.add(Dense(20, input_shape=(2,) + STATE_SIZE, init='uniform', activation='relu'))
+    model.add(Dense(20, input_shape=(2,)+STATE_SIZE, init='uniform', activation='relu'))
     model.add(Flatten())       # Flatten input so as to have no problems with processing
     model.add(Dense(18, init='uniform', activation='relu'))
     model.add(Dense(10, init='uniform', activation='relu'))
@@ -226,7 +228,7 @@ def main():
 
     # observation = env.reset()                     # Game begins ############ <<< find way to autofocus the game window
     observation, score, score_buffer, done = capture(score, score_buffer)
-    # print(observation.shape)
+    print('observation.shape', observation.shape)
     obs = np.expand_dims(observation, axis=0)     # (Formatting issues) Making the observation the first element of a batch of inputs
     state = np.stack((obs, obs), axis=1)
     done = False
@@ -234,7 +236,7 @@ def main():
     pause = False
     while (t < observetime):
         if np.random.rand() <= epsilon:
-            action = np.random.randint(0, 4, size=1)[0]
+            action = np.random.randint(0, len(keylist), size=1)[0]
         else:
             Q = model.predict(state)          # Q-values predictions
             action = np.argmax(Q)             # Move with highest Q-value is the chosen one
@@ -286,6 +288,23 @@ def main():
         t += 1
 
     print('Observing Finished')
+    print(type(action_register), len(action_register))
+    print(action_register[0])
+    print(type(action_register[0]))
+    print(len(action_register[0]))
+    # print(action_register[0].shape)
+    for el in action_register[0]:
+        print('-'*20)
+        print(type(el))
+        try:
+            print(len(el))
+        except:
+            pass
+        try:
+            print(el.shape)
+        except:
+            pass
+    np.savetxt("action_register.txt", action_register) #, fmt='%i')
     t = -1
 
     # SECOND STEP: Learning from the observations (Experience replay)
