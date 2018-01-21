@@ -3,13 +3,14 @@ import time
 
 SendInput = ctypes.windll.user32.SendInput
 
-W = 0x11
-A = 0x1E
-S = 0x1F
-D = 0x20
+W_KEY = 0x11
+A_KEY = 0x1E
+S_KEY = 0x1F
+D_KEY = 0x20
+R_KEY = 0x13
 
 
-# C struct redefinitions 
+# C struct redefinitions
 PUL = ctypes.POINTER(ctypes.c_ulong)
 class KeyBdInput(ctypes.Structure):
     _fields_ = [("wVk", ctypes.c_ushort),
