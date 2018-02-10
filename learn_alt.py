@@ -1,5 +1,6 @@
 import random
-import time
+import time, datetime
+import os
 # import gym
 import numpy as np
 from collections import deque
@@ -14,6 +15,7 @@ import scipy
 
 from environment import Game
 
+DUMP_FOLDER = 'd:\\temp'
 
 class Player:
     def __init__(self, img_size, num_actions):
@@ -62,6 +64,13 @@ class Player:
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
+
+    def save_model(self):
+        tstamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M")
+        pathfile = os.path.join(DUMP_FOLDER, 'model_'+tstamp)
+        self.model.save(pathfile)
+
+        return pathfile
 
 # How many times to play the game
 EPISODES = 5
@@ -139,3 +148,5 @@ for e in range(EPISODES):
         agent.replay(batch_size)
 
 print("Best Score: {}".format(max_score))
+saved = agent.save_model()
+print('model saved at:', saved)
