@@ -15,7 +15,10 @@ import scipy
 
 from environment import Game
 
-DUMP_FOLDER = 'd:\\temp'
+if os.name == 'nt':
+    DUMP_FOLDER = 'd:\\temp'
+else:
+    DUMP_FOLDER = '/media/bob/DATA/temp'
 
 class Player:
     def __init__(self, img_size, num_actions):
@@ -55,11 +58,20 @@ class Player:
     def replay(self, batch_size):
         minibatch = random.sample(self.q_table, batch_size)
         for state, action, reward, next_state, done in minibatch:
+            # the model predicts REWARDs given a state
+            # the relation to the actions, arises from the consistency when
+            #   selecting action - output_node_id -> action_id
+
+            # a good explanations is at:
+            # https://yanpanlau.github.io/2016/07/10/FlappyBird-Keras.html
             target = reward
             if not done:
                 target = (reward + self.gamma *
                           np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
+
+            # updates the "predicted score" of the given state & action,
+            #   the other available actions remain unchanged
             target_f[0][action] = target
             self.model.fit(state, target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
@@ -113,8 +125,10 @@ for i in list(range(4))[::-1]:
 
 for e in range(EPISODES):
     frames = []
-    state = env.reset()
-    state, reward, done = env.render()
+    reward = -1
+    while reward !=0:
+        state = env.reset()
+        state, reward, done = env.render()
     # apparently the Conv2D wants a 4D shape like (1,64,64,1)
     state = shapeState(state)
     for time in range(500):
@@ -134,7 +148,8 @@ for e in range(EPISODES):
 
         frames.append(pix)
         next_state = shapeState(pix)
-        reward = reward if not done else -10
+        reward = reward if not done else -500
+        print(time, ')', reward)
         agent.write_state(state, action, reward, next_state, done)
         state = next_state
         if done:
