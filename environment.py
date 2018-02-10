@@ -68,7 +68,7 @@ def split_rois(image, grid_color=GRID_COLOR):
 
     return score_screen, grid_screen, split_at_y
 
-def preprocess_score_image(original):
+def preprocess_score_image(original, save_sample=False):
     # takes single RGB image of the score and return numpy array of
     # flattened gray-sacle images of the individual digits, ordered from left to right
 
@@ -100,6 +100,9 @@ class Game:
     def __init__(self,):
         self.score = 0
         self.score_buffer = deque([0, 0, 0])
+        self.keylist = [W_KEY, A_KEY, S_KEY, D_KEY]
+        self.done = False
+        self._count = 0
         # load score model
         try:
             with open(SCORE_MODEL_FILENAME, 'rb') as f:
@@ -109,7 +112,10 @@ class Game:
             exit(1)
 
     def reset(self,):
-        pass
+        PressKey(R_KEY)
+        self.score = 0
+        self.score_buffer = deque([0, 0, 0])
+
 
     def update_score(self):
         # takes three consecutive reads of the same score to consider it
@@ -133,6 +139,7 @@ class Game:
         self.score = consider
 
     def render(self,):
+        self._count += 1
         screen =  np.array(ImageGrab.grab(bbox=SCREEN_CAPTURE_ZONE))
         score_screen, grid_screen, y_offset = split_rois(screen)
         flat_score_digits = preprocess_score_image(score_screen)
@@ -178,10 +185,13 @@ class Game:
             done = True
             cv2.imshow('grid', grid)
 
+        self.observation_space = grid
+        self.done = done
+
         return grid, self.score, done
 
     def step(self, action):
-        pass
+        PressKey(self.keylist[action])
 
 
 

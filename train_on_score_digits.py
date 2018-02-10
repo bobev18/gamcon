@@ -8,8 +8,8 @@ from skimage import transform as tf
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 
-classifications = np.loadtxt("classifications.txt") #, , fmt='%i')
 flattened_images = np.loadtxt("flattened_images.txt")#,  fmt='%i')
+classifications = np.loadtxt("classifications.txt") #, , fmt='%i')
 
 
 images = [ np.reshape(z, (RESIZED_IMAGE_HEIGHT, -1)) for z in flattened_images ]

@@ -1,4 +1,5 @@
 import random
+import time
 # import gym
 import numpy as np
 from collections import deque
@@ -10,6 +11,8 @@ from keras.layers.convolutional import MaxPooling2D
 from keras.layers import Dropout
 from keras.layers import Flatten
 import scipy
+
+from environment import Game
 
 
 class Player:
@@ -23,7 +26,7 @@ class Player:
         self.epsilon_decay = 0.995
         self.learning_rate = 0.001
         self.model = self.buildCNN()
-        
+
     def buildCNN(self):
         model = Sequential()
         model.add(Conv2D(32, kernel_size=(5,5), input_shape=(64,64,1), activation='relu'))
@@ -37,10 +40,10 @@ class Player:
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
         return model
-    
+
     def write_state(self, state, action, rewardm, next_state, done):
         self.q_table.append((state, action, reward, next_state, done))
-        
+
     def act(self, state):
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.num_actions)
@@ -63,22 +66,30 @@ class Player:
 # How many times to play the game
 EPISODES = 5000
 
-def rgb2gray(rgb):
-    r,g,b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
-    return 0.2989 * r + 0.5870 * g + 0.1140 * b
+# def rgb2gray(rgb):
+#     r,g,b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]
+#     return 0.2989 * r + 0.5870 * g + 0.1140 * b
+
+# def shapeState(img):
+#     # resize image and make grayscale
+#     resized_gray = rgb2gray(scipy.misc.imresize(img,(64,64)))/ 255.0
+#    shaped = resized_gray.reshape(1,64,64,1)
+#    return shaped
 
 def shapeState(img):
-    # resize image and make grayscale
-    resized_gray = rgb2gray(scipy.misc.imresize(img,(64,64)))/ 255.0
-    shaped = resized_gray.reshape(1,64,64,1)
-    return shaped
+    return img.reshape(1,64,64,1)
 
-env = gym.make('CartPole-v1')
+# env = gym.make('CartPole-v1')
+env = Game()
+next_state, reward, done = env.render()
+print(env.observation_space.shape)
+print(next_state)
 state_size = env.observation_space.shape[0]
+
 # feed 64 by 64 grayscale images into CNN
 state_size = (64,64)
-action_size = env.action_space.n
-agent = player(state_size, action_size)
+action_size = len(env.keylist)
+agent = Player(state_size, action_size)
 done = False
 batch_size = 32
 
@@ -86,15 +97,32 @@ max_score = 0
 frames = []
 best = []
 
+print('get game window in focus')
+for i in list(range(4))[::-1]:
+    print(i+1)
+    time.sleep(1)
+
 for e in range(EPISODES):
     frames = []
     state = env.reset()
-    state = env.render(mode='rgb_array')
+    state, reward, done = env.render()
+    # apparently the Conv2D wants a 4D shape like (1,64,64,1)
     state = shapeState(state)
     for time in range(500):
         action = agent.act(state)
-        next_state, reward, done, _ = env.step(action)
-        pix  = env.render(mode='rgb_array')
+
+        #!# in the subsequent line, it is unclear what is the object that normally would be
+        #                                                             assigned to next_state, but
+        #   in the original code the variable is overwritten by the `next_state = shapeState(pix)`
+        #   i.e. with image representation of the state;
+        #   the goal seems to be to obtain the reward & done values from the `env.action()` call;
+        #   while the subsequent call `pix  = env.render()` is to actually get the image capture...
+
+        # next_state, reward, done, _ = env.step(action)
+        # pix  = env.render()
+        env.step(action)
+        pix, reward, done = env.render()
+
         frames.append(pix)
         next_state = shapeState(pix)
         reward = reward if not done else -10
@@ -109,5 +137,5 @@ for e in range(EPISODES):
             break
     if len(agent.q_table) > batch_size:
         agent.replay(batch_size)
-        
+
 print("Best Score: {}".format(max_score))
