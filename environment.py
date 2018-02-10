@@ -1,8 +1,29 @@
+import os
+if os.name == 'nt':
+    from PIL import ImageGrab
+    from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+    KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
+    RESET_KEY = R_KEY
+    def tap(key):
+        PressKey(key)
+        ReleaseKey(key)
+
+else:
+    import pyscreenshot as ImageGrab
+    from pynput.keyboard import Key, Controller
+    KEYLIST = ['w', 'a', 's', 'd']
+    RESET_KEY = 'r'
+    keyboard = Controller()
+    def tap(key):
+        keyboard.press(key)
+        keyboard.release(key)
+
+
+
+
 import numpy as np
-from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
 from collections import deque
 import pickle
 
@@ -104,7 +125,7 @@ class Game:
     def __init__(self,):
         self.score = 0
         self.score_buffer = deque([0, 0, 0])
-        self.keylist = [W_KEY, A_KEY, S_KEY, D_KEY]
+        self.keylist = KEYLIST
         self.done = False
         self._count = 0
         # load score model
@@ -116,7 +137,7 @@ class Game:
             exit(1)
 
     def reset(self,):
-        PressKey(R_KEY)
+        tap(RESET_KEY)
         self.score = 0
         self.score_buffer = deque([0, 0, 0])
 
@@ -199,7 +220,7 @@ class Game:
         return grid, self.score, done
 
     def step(self, action):
-        PressKey(self.keylist[action])
+        tap(self.keylist[action])
 
 
 
