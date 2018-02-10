@@ -64,7 +64,7 @@ class Player:
             self.epsilon *= self.epsilon_decay
 
 # How many times to play the game
-EPISODES = 5000
+EPISODES = 5
 
 # def rgb2gray(rgb):
 #     r,g,b = rgb[:,:,0], rgb[:,:,1], rgb[:,:,2]

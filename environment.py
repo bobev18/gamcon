@@ -72,6 +72,10 @@ def preprocess_score_image(original, save_sample=False):
     # takes single RGB image of the score and return numpy array of
     # flattened gray-sacle images of the individual digits, ordered from left to right
 
+    if save_sample:
+        colored = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)
+        cv2.imwrite('samples\sample_' + str(save_sample) + '.png', colored)
+
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     _, bw_image = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
     image = bw_image.copy()
@@ -142,7 +146,7 @@ class Game:
         self._count += 1
         screen =  np.array(ImageGrab.grab(bbox=SCREEN_CAPTURE_ZONE))
         score_screen, grid_screen, y_offset = split_rois(screen)
-        flat_score_digits = preprocess_score_image(score_screen)
+        flat_score_digits = preprocess_score_image(score_screen, self._count)
 
         # display stuff
         viewport = cv2.resize(screen, (0,0), fx=0.5, fy=0.5)
