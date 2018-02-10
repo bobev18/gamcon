@@ -142,11 +142,15 @@ class Game:
 
         self.score = consider
 
-    def render(self,):
+    def render(self, save_sample=False):
         self._count += 1
         screen =  np.array(ImageGrab.grab(bbox=SCREEN_CAPTURE_ZONE))
         score_screen, grid_screen, y_offset = split_rois(screen)
-        flat_score_digits = preprocess_score_image(score_screen, self._count)
+        if save_sample:
+            flat_score_digits = preprocess_score_image(score_screen, self._count)
+        else:
+            flat_score_digits = preprocess_score_image(score_screen)
+
 
         # display stuff
         viewport = cv2.resize(screen, (0,0), fx=0.5, fy=0.5)
