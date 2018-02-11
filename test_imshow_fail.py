@@ -40,7 +40,7 @@ import cv2
 import pickle
 
 GRID_COLOR = [185, 172, 160]
-MIN_CONTOUR_AREA = 50
+MIN_CONTOUR_AREA = 30
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 SCORE_MODEL_FILENAME = 'score_model.pickle'
@@ -185,7 +185,7 @@ class Game:
 
         # display stuff
         viewport = cv2.resize(screen, (0,0), fx=0.5, fy=0.5)
-        cv2.imshow('window', viewport)
+        # cv2.imshow('window', viewport)
         cv2.imshow('window2', score_screen)
 
         return grid_screen, flat_score_digits
@@ -344,7 +344,7 @@ class Player:
 
 
 # How many times to play the game
-EPISODES = 5000
+EPISODES = 500
 MAX_ACTIONS_IN_EPISODE = 500
 
 # def rgb2gray(rgb):
@@ -379,8 +379,11 @@ max_score = 0
 frames = []
 best = []
 
+print('on 1366x768, browser scale down no further than 80%')
+print('if it fails to detect score - adjust browser scaling')
+print('if score roi misses 1 - reduce MIN_CONTOUR_AREA')
 print('get game window in focus')
-for i in list(range(4))[::-1]:
+for i in list(range(5))[::-1]:
     print(i+1)
     time.sleep(1)
 
@@ -426,7 +429,7 @@ for e in range(EPISODES):
         # if cv2.waitKey(2) & 0xFF == ord('r'):
         #     env.render()
 
-        if cv2.waitKey(2) & 0xFF == ord('q'):
+        if cv2.waitKey(1)%256 == ord('q'):
             cv2.destroyAllWindows()
             exit(1)
 

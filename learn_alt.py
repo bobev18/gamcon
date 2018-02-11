@@ -165,3 +165,4 @@ for e in range(EPISODES):
 print("Best Score: {}".format(max_score))
 saved = agent.save_model()
 print('model saved at:', saved)
+env.destroy()

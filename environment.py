@@ -222,6 +222,9 @@ class Game:
     def step(self, action):
         tap(self.keylist[action])
 
+    def destroy(self):
+        cv2.destroyAllWindows()
+
 
 
 g = Game()

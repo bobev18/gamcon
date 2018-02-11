@@ -1,11 +1,11 @@
 # https://gabrielecirulli.github.io/2048/
 # Initial concept:
 #  Recognize the value at each cell to build representation of the state
-# Issues:
+# Issues: 
 #  1. due to the difference in contrast it's difficult to get uniformity between samples of different digits
 #  2. there is no variation in the digits, so MNIST type of approach is overkill
 #  3. considering the sample generation, it's obvious I can detect the number by the color - ML not needed.
-#
+#  
 # New concept:
 #  use a scaled down image of the state, and input it as pixels 64x64 should do
 #  gamescore will have to be aquired for the purpose of Deep Q Learning
@@ -13,19 +13,35 @@
 #    - capture samples of the digits and train recognizer
 #    - parsing from HTML will not work as it's updated by JS not via HTTP
 
+import os
+if os.name == 'nt':
+    from PIL import ImageGrab
+    from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+    KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
+    RESET_KEY = R_KEY
+    def tap(key):
+        PressKey(key)
+        ReleaseKey(key)
+
+else:
+    import pyscreenshot as ImageGrab
+    from pynput.keyboard import Key, Controller
+    KEYLIST = ['w', 'a', 's', 'd']
+    RESET_KEY = 'r'
+    keyboard = Controller()
+    def tap(key):
+        keyboard.press(key)
+        keyboard.release(key)
 
 import numpy as np
-from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
-# import pyautogui
 import os, pickle
 
 GRID_COLOR = [185, 172, 160]
 SAMPLE_FOLDER = 'samples'
 SCORE_FILENAME = 'score_digits.png'
-MIN_CONTOUR_AREA = 50
+MIN_CONTOUR_AREA = 30
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 SCORE_MODEL_FILENAME = 'score_model.pickle'
@@ -81,7 +97,7 @@ def split_rois(image, grid_color=GRID_COLOR):
                 break
 
         return region_start, i
-
+        
 
     # cut horizontally
     workscreen = col_filter(image, grid_color, threshold=2)
@@ -161,7 +177,7 @@ def output(image, some_color, coords, convert=False, indicator=False):
 
     if indicator:
         cv2.circle(work_image, tuple([coords[0]-50, coords[1]-50]), 10, [255,0,0])
-
+    
         vertices = np.array([[100,100], [150,100], [150,150], [100,150]], np.int32)
         cv2.fillPoly(work_image, [vertices], some_color)
         vertices = np.array([[200,100], [250,100], [250,150], [200,150]], np.int32)
@@ -219,7 +235,7 @@ def readout(boxes):
         onebox = [ z+50 for z in onebox ]
 
         image = np.array(ImageGrab.grab(bbox=tuple(onebox)))
-
+        
         img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         img_gray = (255 - img_gray)
 
@@ -227,7 +243,7 @@ def readout(boxes):
         ret, bw_image = cv2.threshold(img_gray, 127,255,cv2.THRESH_BINARY)
 
         image = cv2.resize(bw_image, (8, 8))
-
+    
     return bw_image
 
 
@@ -245,13 +261,16 @@ def main():
 
         score_screen, grid_screen, y_offset = split_rois(screen)
         flat_score_digits = preprocess_score_image(score_screen)
-        score = int(''.join([ chr(score_model.predict([z])) for z in flat_score_digits ]))
+        try:
+            score = int(''.join([ chr(score_model.predict([z])) for z in flat_score_digits ]))
+        except ValueError:
+            score = -1
 
 
         # new_screen = process_img(screen)
         if len(workscreen) == 0:
             workscreen = screen.copy()
-
+    
         print('Loop took {} seconds'.format(time.time()-last_time), score)
 
         last_time = time.time()
@@ -259,50 +278,55 @@ def main():
         if len(score_screen) > 0:
             cv2.imshow('window2', score_screen)
 
-        if cv2.waitKey(5) & 0xFF == ord('r'): #reset to "fresh" screen
+        button = cv2.waitKey(1) % 256
+        print(button)
+
+        if button == ord('r'): #reset to "fresh" screen
             workscreen = screen.copy()
 
-        if cv2.waitKey(5) & 0xFF == ord('i'): #toggle color picker indicator
+        if button == ord('i'): #toggle color picker indicator
             indicator = not indicator
-
-        if cv2.waitKey(5) & 0xFF == ord('f'):
+        
+        if button == ord('f'):
             # workscreen = col_filter(screen, pick, threshold=5)
             workscreen = col_filter(workscreen, pick, threshold=2)
 
-        if cv2.waitKey(5) & 0xFF == ord('g'):
+        if button == ord('g'):
             workscreen = corner_filter(workscreen)
             print(workscreen)
 
-        if cv2.waitKey(5) & 0xFF == ord('t'):    #trigger processing
+        if button == ord('t'):    #trigger processing
             score_screen, grid_screen, y_offset = split_rois(screen)
             workscreen, grid = find_grid(grid_screen.copy(), y_offset)
 
-        if cv2.waitKey(5) & 0xFF == ord('p'):
+        if button == ord('p'):
             pick = col_pick(workscreen, coords)
 
-        if cv2.waitKey(5) & 0xFF == ord('w'):
+        if button == ord('w'):
             coords[1] -= 10
 
-        if cv2.waitKey(5) & 0xFF == ord('a'):
+        if button == ord('a'):
             coords[0] -= 10
 
-        if cv2.waitKey(5) & 0xFF == ord('s'):
+        if button == ord('s'):
             coords[1] += 10
 
-        if cv2.waitKey(5) & 0xFF == ord('d'):
+        if button == ord('d'):
             coords[0] +=10
 
-        if cv2.waitKey(5) & 0xFF == ord('y'):
+        if button == ord('y'): 
             # break score into separate digits
             flat_score_digits = preprocess_score_image(score_screen)
             print([ chr(score_model.predict([z])) for z in flat_score_digits ])
 
-        if cv2.waitKey(5) & 0xFF == ord('z'):
+        if button == ord('z'):
             save_score(score_screen)
             print('SAVED')
-
-        if cv2.waitKey(5) & 0xFF == ord('q'):
+            
+        if button%256 == ord('q'):
             cv2.destroyAllWindows()
             break
 
+
 main()
+cv2.destroyAllWindows()
