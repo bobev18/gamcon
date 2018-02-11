@@ -1,11 +1,11 @@
 # https://gabrielecirulli.github.io/2048/
 # Initial concept:
 #  Recognize the value at each cell to build representation of the state
-# Issues: 
+# Issues:
 #  1. due to the difference in contrast it's difficult to get uniformity between samples of different digits
 #  2. there is no variation in the digits, so MNIST type of approach is overkill
 #  3. considering the sample generation, it's obvious I can detect the number by the color - ML not needed.
-#  
+#
 # New concept:
 #  use a scaled down image of the state, and input it as pixels 64x64 should do
 #  gamescore will have to be aquired for the purpose of Deep Q Learning
@@ -18,8 +18,8 @@ import numpy as np
 from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W, A, S, D
-import pyautogui
+from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+# import pyautogui
 import os, pickle
 
 GRID_COLOR = [185, 172, 160]
@@ -81,7 +81,7 @@ def split_rois(image, grid_color=GRID_COLOR):
                 break
 
         return region_start, i
-        
+
 
     # cut horizontally
     workscreen = col_filter(image, grid_color, threshold=2)
@@ -161,7 +161,7 @@ def output(image, some_color, coords, convert=False, indicator=False):
 
     if indicator:
         cv2.circle(work_image, tuple([coords[0]-50, coords[1]-50]), 10, [255,0,0])
-    
+
         vertices = np.array([[100,100], [150,100], [150,150], [100,150]], np.int32)
         cv2.fillPoly(work_image, [vertices], some_color)
         vertices = np.array([[200,100], [250,100], [250,150], [200,150]], np.int32)
@@ -219,7 +219,7 @@ def readout(boxes):
         onebox = [ z+50 for z in onebox ]
 
         image = np.array(ImageGrab.grab(bbox=tuple(onebox)))
-        
+
         img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         img_gray = (255 - img_gray)
 
@@ -227,7 +227,7 @@ def readout(boxes):
         ret, bw_image = cv2.threshold(img_gray, 127,255,cv2.THRESH_BINARY)
 
         image = cv2.resize(bw_image, (8, 8))
-    
+
     return bw_image
 
 
@@ -251,7 +251,7 @@ def main():
         # new_screen = process_img(screen)
         if len(workscreen) == 0:
             workscreen = screen.copy()
-    
+
         print('Loop took {} seconds'.format(time.time()-last_time), score)
 
         last_time = time.time()
@@ -264,7 +264,7 @@ def main():
 
         if cv2.waitKey(5) & 0xFF == ord('i'): #toggle color picker indicator
             indicator = not indicator
-        
+
         if cv2.waitKey(5) & 0xFF == ord('f'):
             # workscreen = col_filter(screen, pick, threshold=5)
             workscreen = col_filter(workscreen, pick, threshold=2)
@@ -292,7 +292,7 @@ def main():
         if cv2.waitKey(5) & 0xFF == ord('d'):
             coords[0] +=10
 
-        if cv2.waitKey(5) & 0xFF == ord('y'): 
+        if cv2.waitKey(5) & 0xFF == ord('y'):
             # break score into separate digits
             flat_score_digits = preprocess_score_image(score_screen)
             print([ chr(score_model.predict([z])) for z in flat_score_digits ])
@@ -300,7 +300,7 @@ def main():
         if cv2.waitKey(5) & 0xFF == ord('z'):
             save_score(score_screen)
             print('SAVED')
-            
+
         if cv2.waitKey(5) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
             break
