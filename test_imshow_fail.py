@@ -41,6 +41,7 @@ import pickle
 
 GRID_COLOR = [185, 172, 160]
 MIN_CONTOUR_AREA = 30
+MIN_CONTOUR_AREA_GRID = 100
 RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 SCORE_MODEL_FILENAME = 'score_model.pickle'
@@ -198,14 +199,14 @@ class Game:
         start_time = datetime.datetime.now()
         runtime = start_time - start_time
         while (force_score_change and old_score - self.score == 0 and runtime.seconds < 1) or detected_score < 0:
-            print('>', old_score - self.score, detected_score, runtime.seconds)
+            # print('>', old_score - self.score, detected_score, runtime.seconds)
             grid_screen, flat_score_digits = self.screen_capture(save_sample)
 
             try:
                 detected_score = int(''.join([ chr(self.score_model.predict([z])) for z in flat_score_digits ]))
             except ValueError as e:
                 detected_score = -1
-                print('failed score detection:', e)
+                # print('failed score detection:', e)
 
             _ = self.score_buffer.popleft()
             self.score_buffer.append(detected_score)
@@ -236,18 +237,23 @@ class Game:
         rois = []
 
         for contour in contours:
-            if cv2.contourArea(contour) > MIN_CONTOUR_AREA:
+            if cv2.contourArea(contour) > MIN_CONTOUR_AREA_GRID:
                 [intX, intY, intW, intH] = cv2.boundingRect(contour)
                 cv2.rectangle(grid_screen, (intX, intY), (intX+intW,intY+intH), (0, 0, 255), 2)
                 imgROI = grid_screen[intY:intY+intH, intX:intX+intW]
                 rois.append(imgROI)
 
         if len(rois) > 0:
+            # print(type(rois[0]))
+            # print(len(rois[0]))
+            # print(rois[0].shape)
+            # print([cv2.contourArea(z) for z in rois])
             grid_roi = rois[0]
             gray_grid = cv2.cvtColor(grid_roi, cv2.COLOR_BGR2GRAY)
             grid = cv2.resize(gray_grid, STATE_SIZE)
             done = False
-            cv2.imshow('grid', grid_roi)
+            # cv2.imshow('grid', grid_roi)
+            cv2.imshow('grid', grid)
         else:
             grid =  np.zeros(STATE_SIZE, dtype=np.int)
             done = True
@@ -406,6 +412,7 @@ for e in range(EPISODES):
         state = env.reset()
         state, score, done = env.render()
         old_score = score
+    done = False
     # apparently the Conv2D wants a 4D shape like (1,64,64,1)
     state = shapeState(state)
     for time in range(MAX_ACTIONS_IN_EPISODE):
