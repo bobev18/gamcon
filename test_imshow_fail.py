@@ -149,8 +149,8 @@ class Game:
 
     def reset(self,):
         tap(RESET_KEY)
-        self.score = 0
-        self.score_buffer = deque([0, 0, 0])
+        # self.score = 0
+        # self.score_buffer = deque([0, 0, 0])
 
 
     def update_score(self):
@@ -185,8 +185,8 @@ class Game:
 
 
         # display stuff
-        viewport = cv2.resize(screen, (0,0), fx=0.5, fy=0.5)
-        # cv2.imshow('window', viewport)
+        viewport = cv2.resize(screen, (0,0), fx=0.3, fy=0.3)
+        cv2.imshow('window', viewport)
         cv2.imshow('window2', score_screen)
 
         return grid_screen, flat_score_digits
@@ -199,11 +199,13 @@ class Game:
         start_time = datetime.datetime.now()
         runtime = start_time - start_time
         while (force_score_change and old_score - self.score == 0 and runtime.seconds < 1) or detected_score < 0:
-            # print('>', old_score - self.score, detected_score, runtime.seconds)
+            print(force_score_change, ';;', old_score - self.score, detected_score, runtime.seconds)
             grid_screen, flat_score_digits = self.screen_capture(save_sample)
 
             try:
-                detected_score = int(''.join([ chr(self.score_model.predict([z])) for z in flat_score_digits ]))
+                text_score = ''.join([ chr(self.score_model.predict([z])) for z in flat_score_digits ])
+                print('text_score', text_score)
+                detected_score = int(text_score)
             except ValueError as e:
                 detected_score = -1
                 # print('failed score detection:', e)
@@ -261,6 +263,8 @@ class Game:
 
         self.observation_space = grid
         self.done = done
+        if done:
+            print('DONE '*10)
 
         return grid, self.score, done
 
@@ -408,10 +412,11 @@ for i in list(range(5))[::-1]:
 for e in range(EPISODES):
     frames = []
     score = -1
-    while score !=0:
+    while score != 0:
         state = env.reset()
-        state, score, done = env.render()
+        state, score, done = env.render(True)
         old_score = score
+    print('reset complete with score', score )
     done = False
     # apparently the Conv2D wants a 4D shape like (1,64,64,1)
     state = shapeState(state)
