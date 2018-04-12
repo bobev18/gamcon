@@ -1,3 +1,5 @@
+# capture screen, and output it in window wile pressing random key (out of WASD) at every captured frame
+
 import numpy as np
 from PIL import ImageGrab
 import cv2

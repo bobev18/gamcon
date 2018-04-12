@@ -1,9 +1,12 @@
+# process image to find the lines using edge detection & Hough Line Transform 
+# (https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/hough_lines/hough_lines.html)
+
 import numpy as np
 from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W, A, S, D
-import pyautogui
+from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
+# import pyautogui
 
 
 def draw_lines(img, lines):

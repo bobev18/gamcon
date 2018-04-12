@@ -1,4 +1,22 @@
+# implements tools for capruring ROIs (region of interest)
+# captures screen and displays results in a window. While focus on the display window,
+# allows holding key (press down for few seconds) to execute functions:
+#   - r - refresh output screen
+#   - i - toggle color picker indicator
+#   - f - apply collor filter; the color is prefixed to GRID_COLOR [185, 172, 160]
+#   - g - apply custom filter that captures corners
+#   - t - find and capture ROIs; Conceptually it's applying "f", "g" and something like "r" for the regions,
+#         but the implementation differes: takes advantage that the lines we want are all horizontal &
+#         vertical
+#   - p - pick color under invisible coursor (starts at [170,300]); outputs rectangle with the selected
+#         color in the output window and RGB values in console
+#   - wasd - navigate the invisible coursor
+#   - y - uses the ROI captured via "t" to detect score - outputs in console
+#   - z - saves the captured score as image file
+#   - q - quit
+
 # https://gabrielecirulli.github.io/2048/
+
 # Initial concept:
 #  Recognize the value at each cell to build representation of the state
 # Issues: 
@@ -18,8 +36,8 @@ import numpy as np
 from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W, A, S, D
-import pyautogui
+from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
+# import pyautogui
 import os, pickle
 
 GRID_COLOR = [185, 172, 160]

@@ -1,3 +1,6 @@
+# uses stored image with digits from 0 to 9 to split them into individual arrays and annotate them
+# i.e. adds labels & prepares the data for ML use
+
 import numpy as np
 import cv2
 import sys
@@ -73,8 +76,9 @@ print(classifications)
 
 # print "\n\ntraining complete !!\n"
 
-np.savetxt("classifications.txt", classifications, fmt='%i')
-np.savetxt("flattened_images.txt", flattened_images, fmt='%i')
+
+np.savetxt("delme_classifications.txt", classifications, fmt='%i')
+np.savetxt("delme_flattened_images.txt", flattened_images, fmt='%i')
 
 
 # intChar = cv2.waitKey(0)

@@ -1,3 +1,6 @@
+# captures top left portion of the screen and outputs it in a window
+# console outputs the time between captures
+
 import numpy as np
 from PIL import ImageGrab
 
