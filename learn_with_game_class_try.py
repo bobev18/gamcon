@@ -1,3 +1,5 @@
+# Executes both on Win and LINUX, but ends in infinite loop on the final cycle
+
 import random
 import time, datetime
 import os

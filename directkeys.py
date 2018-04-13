@@ -1,3 +1,5 @@
+# Lib implementing key presses on Win
+
 import ctypes
 import time
 
@@ -65,3 +67,5 @@ if __name__ == '__main__':
         time.sleep(1)
         ReleaseKey(0x11)
         time.sleep(1)
+
+        

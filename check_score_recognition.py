@@ -1,3 +1,6 @@
+# Check the score recognition success while randomly pressing WASD
+
+
 # https://gabrielecirulli.github.io/2048/
 # Concept:
 #  use a scaled down image of the state, and input it as pixels 64x64 should do
@@ -8,7 +11,7 @@ import numpy as np
 from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W, A, S, D
+from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
 import os, pickle
 import random
 from keras.models import Sequential      # One layer after the other
@@ -134,7 +137,7 @@ def main():
     last_time = time.time()
     score = 0
     score_buffer = deque([0, 0, 0])
-    keylist = [W, A, S, D]
+    keylist = [W_KEY, A_KEY, S_KEY, D_KEYd]
 
     # print('in sublime Ctrl+Break(PrintScr) to cancel build')
     for i in list(range(4))[::-1]:
