@@ -1,17 +1,26 @@
+# implements tools for capruring ROIs (region of interest)
+#      as of v2:
+#        = runs on LINUX
+#        = automatically applies 't' + 'y' 
+#        = 
+# captures screen and displays results in a window. While focus on the display window,
+# allows holding key (press down for few seconds) to execute functions:
+#   - r - refresh output screen
+#   - i - toggle color picker indicator
+#   - f - apply collor filter; the color is prefixed to GRID_COLOR [185, 172, 160]
+#   - g - apply custom filter that captures corners
+#   - t - find and capture ROIs; Conceptually it's applying "f", "g" and something like "r" for the regions,
+#         but the implementation differes: takes advantage that the lines we want are all horizontal &
+#         vertical
+#   - p - pick color under invisible coursor (starts at [170,300]); outputs rectangle with the selected
+#         color in the output window and RGB values in console
+#   - wasd - navigate the invisible coursor
+#   - y - uses the ROI captured via "t" to detect score - outputs in console
+#   - z - saves the captured score as image file
+#   - q - quit
+
+
 # https://gabrielecirulli.github.io/2048/
-# Initial concept:
-#  Recognize the value at each cell to build representation of the state
-# Issues: 
-#  1. due to the difference in contrast it's difficult to get uniformity between samples of different digits
-#  2. there is no variation in the digits, so MNIST type of approach is overkill
-#  3. considering the sample generation, it's obvious I can detect the number by the color - ML not needed.
-#  
-# New concept:
-#  use a scaled down image of the state, and input it as pixels 64x64 should do
-#  gamescore will have to be aquired for the purpose of Deep Q Learning
-#   (https://www.youtube.com/watch?v=79pmNdyxEGo)
-#    - capture samples of the digits and train recognizer
-#    - parsing from HTML will not work as it's updated by JS not via HTTP
 
 import os
 if os.name == 'nt':
@@ -271,7 +280,7 @@ def main():
         if len(workscreen) == 0:
             workscreen = screen.copy()
     
-        print('Loop took {} seconds'.format(time.time()-last_time), score)
+        print('Loop took {} seconds'.format(time.time()-last_time), '\ndetected score:', score)
 
         last_time = time.time()
         cv2.imshow('window', output(workscreen, pick, coords, indicator=indicator))
