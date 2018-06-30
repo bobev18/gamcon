@@ -1,3 +1,9 @@
+# spliting overlapped images to individuall digits FAILS
+## started Jupyter NB to find alternative approach to splitting
+
+
+
+import os
 import math
 import numpy as np
 # import matplotlib.pyplot as plt
@@ -17,6 +23,8 @@ RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL
+
+SAMPLE_FOLDER = 'F:\projlogs\gamcon_samples'
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -76,7 +84,7 @@ SAMPLES_COUNT = 1002
 
 # load classifications
 classifications = []
-with open('score_smaples_values.txt', 'rt') as f:
+with open(os.path.join(SAMPLE_FOLDER, 'score_smaples_values.txt'), 'rt') as f:
     test = [ z.strip() for z in f.readlines()]
     classifications = list(itertools.chain.from_iterable(test))
     # classifications.extend([z for z in chars])
@@ -93,7 +101,7 @@ print(len(classifications), classifications[:15])
 training_samples = []
 training_images = []
 for i in range(1, SAMPLES_COUNT+1):
-    img = cv2.imread('samples/sample_' + str(i) + '.png')
+    img = cv2.imread(os.path.join(SAMPLE_FOLDER, 'sample_' + str(i) + '.png'))
     # training_images.extend(preprocess_score_image(img))
     training_samples.append(img)
     parts = preprocess_score_image(img)
