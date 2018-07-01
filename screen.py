@@ -174,7 +174,6 @@ class Screen:
 
         return zones
 
-
     def _merge_small_zones(self, zones, image, verbose=0):
         '''determine if single digit was split in two zones - "small" & "partial"'''
 
@@ -223,6 +222,8 @@ class Screen:
 
     def _score_digit_rois(self, image, corner_cut_size=1, verbose=0):
         zones = self._split_score_digits(image, color=SCORE_COLOR, corner_cut_size=corner_cut_size, verbose=verbose)
+        for i, zone in enumerate(zones):
+            self.display('split_zone' + str(i), image, bound=[zone[1], 0, zone[2], image.shape[1]])
         zones = self._merge_small_zones(zones, image, verbose=verbose)
 
         return zones
@@ -243,6 +244,9 @@ class Screen:
 
         flattened_digits = [z.reshape((RESIZED_IMAGE_WIDTH * RESIZED_IMAGE_HEIGHT)) for z in digits]
         return flattened_digits
+
+    def _unflatten(self, image):
+        return np.reshape(image, (RESIZED_IMAGE_HEIGHT, -1))
 
     def _grab(self):
         self.raw_screen = np.array(ImageGrab.grab(bbox=self.capture_zone))
@@ -281,7 +285,12 @@ class Screen:
         try:
             # detected_score = int(''.join([ chr(self.score_model.predict([z])) for z in flat_score_digits ]))
             print('# digits in score:', len(flat_score_digits))
-            detected_score = int(''.join([ str(self.score_model.predict([z])[0]) for z in flat_score_digits ]))
+            predictions = [ self.score_model.predict([z]) for z in flat_score_digits ]
+            for i, predicts in enumerate(predictions):
+                unflat = self._unflatten(flat_score_digits[i])
+                self.display('unflat' + str(i), unflat)
+                print('predictions for digit', i, ':', predicts)
+            detected_score = int(''.join([ str(z[0]) for z in predictions ]))
             print('detected_score', detected_score)
         except ValueError as e:
             detected_score = -1
@@ -317,5 +326,8 @@ class Screen:
 
         return done, grid
 
-    def display(self, window, image):
-        cv2.imshow(window, image)
+    def display(self, window_name, image, bound=None):
+        local_image = image.copy()
+        if bound:
+            cv2.rectangle(local_image, (bound[0], bound[1]), (bound[2], bound[3]), (0, 0, 255), 2)
+        cv2.imshow(window_name, local_image)
