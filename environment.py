@@ -1,7 +1,7 @@
 import os
 if os.name == 'nt':
     from PIL import ImageGrab
-    from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+    from util.directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
     KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
     RESET_KEY = R_KEY
     def tap(key):
@@ -31,6 +31,7 @@ class Game:
 
     def __init__(self,):
         self.score = 0
+        self.old_score = 0
         self.score_buffer = deque([0, 0, 0])
         self.keylist = KEYLIST
         self.done = False
@@ -42,15 +43,18 @@ class Game:
         self.score = 0
         self.score_buffer = deque([0, 0, 0])
 
-
     def update_score(self):
-        # takes three consecutive reads of the same score to consider it
-        if self.score_buffer[0] != self.score_buffer[1] or self.score_buffer[0] != self.score_buffer[2]:
-            return
+        # # takes three consecutive reads of the same score to consider it
+        # if self.score_buffer[0] != self.score_buffer[1] or self.score_buffer[0] != self.score_buffer[2]:
+        #     return
 
-        ### if increased buffer size, for efficient comparison use ###
-        # if self.score_buffer.count(self.score_buffer[0]) != len(self.score_buffer):
-        #     return self.score
+        # !!! above is wrong:
+        #  we make read once per action
+        #  the only way to get 3 equal consequtive reads is if
+        #                   the action doesn't change the score
+
+        # either make 3 reads per action
+        # or dont enforse buffer equality
 
         consider = self.score_buffer[0]
 
@@ -64,16 +68,16 @@ class Game:
 
         self.score = consider
 
-    def render(self, save_sample=False):
+    def render(self, save_sample=False, display_rois=True):
         self._count += 1
 
-        if save_sample:
-            grid_img, detected_score, game_over = self.screen.read(save_sample=self._count)
-        else:
-            grid_img, detected_score, game_over = self.screen.read()
+        grid_img, detected_score, game_over = self.screen.read(
+            save_sample=self._count*save_sample,
+            display_rois=display_rois
+            )
 
-        if cv2.waitKey(2) & 0xFF == ord('q'):
-            cv2.destroyAllWindows()
+        if cv2.waitKey(5) & 0xFF == ord('q'):
+            self.destroy()
             exit(1)
 
         _ = self.score_buffer.popleft()
@@ -89,8 +93,3 @@ class Game:
 
     def destroy(self):
         cv2.destroyAllWindows()
-
-
-
-g = Game()
-g.render()

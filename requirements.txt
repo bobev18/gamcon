@@ -6,3 +6,4 @@ pip install keras
 pip install sklearn
 
 pip3 install scikit-image
+cv2
