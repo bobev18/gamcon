@@ -20,3 +20,15 @@ train_on_overlapping_digits.ipynb -- uses raw images of scores with overlap to
 unchecked ==
   learn_alt.py
   environment.py
+
+
+TODO:
+
+ - push/clean legacy files in folders:
+   = i.e. capture_screen_try in folder "examples"
+   = score_getter in "tools"
+   = pickles and flat files in "data"
+   ...
+
+ - clean/refresh requirements
+

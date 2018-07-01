@@ -103,9 +103,6 @@ def shapeState(img):
 # env = gym.make('CartPole-v1')
 env = Game()
 next_state, reward, done = env.render()
-print(env.observation_space.shape)
-print(next_state)
-state_size = env.observation_space.shape[0]
 
 # feed 64 by 64 grayscale images into CNN
 state_size = (64,64)
