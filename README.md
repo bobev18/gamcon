@@ -22,11 +22,17 @@ unchecked ==
   environment.py
 
 
+the new digit split seems to miss digits
+
+
 TODO:
+
+ - adjust the score update method
+ - run tests with overlapping and record more samples
 
  - encapsulate keyboard interactions
  - find a way to send signal to the app, while focus is on the game (i.e. via mouse)
  - refactor score
- - test overlapping model
  - clean/refresh requirements
+ - have the min constants dependent on environment
 

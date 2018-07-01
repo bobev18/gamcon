@@ -75,17 +75,16 @@ def render(screen, score_buffer):
 def main():
     last_time = time.time()
     score = 0
-    # score_buffer = deque([0, 0, 0])
-
-    env = Game()
-    grid, score, gameover = env.render()
-    keylist = env.keylist
 
     print('in sublime Ctrl+Break(PrintScr) to cancel build')
     print('get game window in focus')
     for i in list(range(4))[::-1]:
         print(i+1)
         time.sleep(1)
+
+    env = Game()
+    grid, score, gameover = env.render()
+    keylist = env.keylist
 
     while(True):
         PressKey(random.choice(keylist))
