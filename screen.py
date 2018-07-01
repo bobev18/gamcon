@@ -1,5 +1,8 @@
 import os
 if os.name == 'nt':
+    from ctypes import windll
+    user32 = windll.user32
+    user32.SetProcessDPIAware()
     from PIL import ImageGrab
     from util.directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
     KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
@@ -35,7 +38,7 @@ RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 SCORE_MODEL_FILENAME = 'data/score_model2.pickle'
 STATE_SIZE = (64, 64)
-SCREEN_CAPTURE_ZONE = (0, 0, 1200, 1080)
+SCREEN_CAPTURE_ZONE = (0, 0, 1000, 1440)
 MAX_SMALL_ZONE_SIZE = 7
 MAX_PARTIAL_ZONE_SIZE = 11
 
@@ -94,7 +97,6 @@ class Screen:
         workscreen = self.__col_filter(image, grid_color, threshold=2)
         h_sums = workscreen.sum(axis=1)
         score_screen_start_y, split_at_y = self.__find_range_start_end(h_sums)
-
         score_screen = image[score_screen_start_y:split_at_y]
         grid_screen = image[split_at_y:]
 
@@ -270,6 +272,11 @@ class Screen:
             self.display('grab_zone', viewport)
             self.display('score', score_screen)
             self.display('grid', grid)
+
+            digit_zones = self._score_digit_rois(score_screen, corner_cut_size=2, verbose=0)
+            # print(l)
+            for i, dz in enumerate(digit_zones):
+                self.display('digitzone' + str(i), dz[0])
 
         try:
             # detected_score = int(''.join([ chr(self.score_model.predict([z])) for z in flat_score_digits ]))

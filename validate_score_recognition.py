@@ -2,6 +2,9 @@
 
 import os
 if os.name == 'nt':
+    from ctypes import windll
+    user32 = windll.user32
+    user32.SetProcessDPIAware()
     from PIL import ImageGrab
     from util.directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
     KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
@@ -9,6 +12,8 @@ if os.name == 'nt':
     def tap(key):
         PressKey(key)
         ReleaseKey(key)
+
+
 
 else:
     import pyscreenshot as ImageGrab
@@ -97,12 +102,30 @@ def main():
         print('read:', detected_score, 'buffer:', env.score_buffer, 'score:', score)
         last_time = time.time()
 
-        if cv2.waitKey(5) & 0xFF == ord('r'): # reset score
-            score = 0
-            detected_score = 0
-            env.reset()
+        key_pressed = False
+        while not key_pressed:
+
+            if cv2.waitKey(5) & 0xFF == ord('r'): # reset score
+                score = 0
+                detected_score = 0
+                env.reset()
+                key_pressed = True
+
+            if cv2.waitKey(5) & 0xFF == ord('q'): # exit
+                key_pressed = True
+                env.destroy()
+                exit(1)
+
+            if cv2.waitKey(5) & 0xFF == ord('n'): # next action
+                key_pressed = True
+
 
         # the above requires focus on the "app" i.e display windos in order to work
         # if the focus is on the game, as input requres, this doesn't work
+
+        print('switch back to game to execute action')
+        for i in list(range(2))[::-1]:
+            print(i+1)
+            time.sleep(1)
 
 main()
