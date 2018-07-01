@@ -56,7 +56,7 @@ class Game:
         # either make 3 reads per action
         # or dont enforse buffer equality
 
-        consider = self.score_buffer[0]
+        consider = self.score_buffer[-1]
 
         # new score has to be higher:
         if consider <= self.score:
