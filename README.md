@@ -24,11 +24,9 @@ unchecked ==
 
 TODO:
 
- - push/clean legacy files in folders:
-   = i.e. capture_screen_try in folder "examples"
-   = score_getter in "tools"
-   = pickles and flat files in "data"
-   ...
-
+ - encapsulate keyboard interactions
+ - find a way to send signal to the app, while focus is on the game (i.e. via mouse)
+ - refactor score
+ - test overlapping model
  - clean/refresh requirements
 
