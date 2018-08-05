@@ -14,11 +14,11 @@
 
 # Initial concept:
 #  Recognize the value at each cell to build representation of the state
-# Issues: 
+# Issues:
 #  1. due to the difference in contrast it's difficult to get uniformity between samples of different digits
 #  2. there is no variation in the digits, so MNIST type of approach is overkill
 #  3. considering the sample generation, it's obvious I can detect the number by the color - ML not needed.
-#  
+#
 # New concept:
 #  use a scaled down image of the state, and input it as pixels 64x64 should do
 #  gamescore will have to be aquired for the purpose of Deep Q Learning
@@ -77,6 +77,7 @@ def process_img(original_image):
     return processed_img
 
 def col_filter(image, color, threshold=20):
+    print('filtering by:', color)
     lower = np.array([ z-threshold for z in color ])
     upper = np.array([ z+threshold for z in color ])
     mask = cv2.inRange(image, lower, upper)
@@ -111,7 +112,7 @@ def output(image, some_color, coords, convert=False, indicator=False):
 
     if indicator:
         cv2.circle(work_image, tuple(coords), 10, [255,0,0])
-    
+
     vertices = np.array([[100,100], [150,100], [150,150], [100,150]], np.int32)
     cv2.fillPoly(work_image, [vertices], some_color)
     vertices = np.array([[200,100], [250,100], [250,150], [200,150]], np.int32)
@@ -183,7 +184,7 @@ def find_grid(workscreen):
     return workscreen, boxes
 
 def bump_contrast(image):
-    #-----Converting image to LAB Color model----------------------------------- 
+    #-----Converting image to LAB Color model-----------------------------------
     lab= cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     # cv2.imshow("lab",lab)
 
@@ -224,14 +225,14 @@ def readout(boxes, model):
         # oldimg = cv2.imread('samples\sample.png',1)
         # combined = np.concatenate((oldimg, cv2.cvtColor(image, cv2.COLOR_BGR2RGB)), axis=1)
         # cv2.imwrite('samples\sample.png', combined)
-        
+
         img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         img_gray = (255 - img_gray)
 
         # black and white
         ret, bw_image = cv2.threshold(img_gray, 127,255,cv2.THRESH_BINARY)
 
-        image = cv2.resize(bw_image, (8, 8)) 
+        image = cv2.resize(bw_image, (8, 8))
         print(image)
         prediction = model.predict_proba(flatten_digit.reshape(1, -1))
         print(prediction)
@@ -240,7 +241,7 @@ def readout(boxes, model):
 
 
     return bw_image, prediction
-    
+
 
 def main():
     grid = []
@@ -256,7 +257,7 @@ def main():
         if len(grid) > 0:
             w3, pred = readout(grid, logistic)
             cv2.imshow('window3', w3)
-            
+
             print('Loop took {} seconds'.format(time.time()-last_time), coords, pick, pred)
         else:
             print('Loop took {} seconds'.format(time.time()-last_time), coords, pick)
@@ -267,7 +268,7 @@ def main():
         cv2.imshow('window2', output(workscreen, pick, coords))
         if cv2.waitKey(25) & 0xFF == ord('r'): #reset to "fresh" screen
             workscreen = screen.copy()
-        
+
         if cv2.waitKey(25) & 0xFF == ord('f'):
             # workscreen = col_filter(screen, pick, threshold=5)
             workscreen = col_filter(workscreen, [185, 172, 160], threshold=2)
@@ -293,7 +294,7 @@ def main():
 
         if cv2.waitKey(25) & 0xFF == ord('d'):
             coords[0] +=10
-            
+
         if cv2.waitKey(25) & 0xFF == ord('q'):
             cv2.destroyAllWindows()
             break
