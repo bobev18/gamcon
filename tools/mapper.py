@@ -32,17 +32,54 @@
 #    - parsing from HTML will not work as it's updated by JS not via HTTP
 
 
+import os
+if os.name == 'nt':
+    from PIL import ImageGrab
+    from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+    KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
+    RESET_KEY = R_KEY
+    def tap(key):
+        PressKey(key)
+        ReleaseKey(key)
+    from ctypes import windll
+    user32 = windll.user32
+    user32.SetProcessDPIAware()
+    BOX = (3280, 15, 3830, 550)
+
+else:
+    import pyscreenshot as ImageGrab
+    from pynput.keyboard import Key, Controller
+    KEYLIST = ['w', 'a', 's', 'd']
+    RESET_KEY = 'r'
+    keyboard = Controller()
+    def tap(key):
+        keyboard.press(key)
+        keyboard.release(key)
+    BOX = (50, 50, 1200, 1400)
+
+    # Using box bigger than the screen 
+    # BOX = (3280, 15, 3830, 550)
+    # results in error:
+    #
+    #     Traceback (most recent call last):
+    #   File "mapper.py", line 380, in <module>
+    #     main()
+    #   File "mapper.py", line 321, in main
+    #     cv2.imshow('window', output(workscreen, pick, coords, indicator=indicator))
+    #   File "mapper.py", line 210, in output
+    #     work_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    # cv2.error: OpenCV(3.4.2) /io/opencv/modules/imgproc/src/color.hpp:253: error: (-215:Assertion failed) VScn::contains(scn) && VDcn::contains(dcn) && VDepth::contains(depth) in function 'CvtHelper'
+    #
+
+
 import numpy as np
-from PIL import ImageGrab
+# from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
+# from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
 # import pyautogui
 import os, pickle
 
-from ctypes import windll
-user32 = windll.user32
-user32.SetProcessDPIAware()
 
 GRID_COLOR = [185, 172, 160]
 WALL_COLOR = [51, 51, 63]
@@ -54,7 +91,6 @@ RESIZED_IMAGE_WIDTH = 20
 RESIZED_IMAGE_HEIGHT = 30
 SCORE_MODEL_FILENAME = 'data/score_model.pickle'
 # BOX = (50, 50, 1200, 1400)
-BOX = (3280, 15, 3830, 550)
 
 # load score model
 # try:
@@ -282,8 +318,8 @@ def main():
     while(True):
         screen =  np.array(ImageGrab.grab(bbox=BOX))
         # new_screen = process_img(screen)
-        # if len(workscreen) == 0:
-        workscreen = screen.copy()
+        if len(workscreen) == 0:
+            workscreen = screen.copy()
         # if counter % 5 == 0:
         #     map_buffer.append(workscreen)
 

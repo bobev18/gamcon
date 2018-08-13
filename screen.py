@@ -49,6 +49,8 @@ class Screen:
         self.zone_width = capture_zone[2] - capture_zone[0]
         self.zone_height = capture_zone[3] - capture_zone[1]
         self.raw_screen = np.zeros((self.zone_width, self.zone_height), dtype=np.int)
+        self.old_screen = np.zeros((self.zone_width, self.zone_height), dtype=np.int)
+        self._init_flag = True
         # load score ML model
         try:
             with open(SCORE_MODEL_FILENAME, 'rb') as f:
@@ -74,6 +76,7 @@ class Screen:
 
         region_detected = False
         region_start = 0
+        i = 0 
         for i in range(len(sumlist)):
             if sumlist[i] > 0 and not region_detected:
                 region_detected = True
@@ -177,6 +180,18 @@ class Screen:
     def _merge_small_zones(self, zones, image, verbose=0):
         '''determine if single digit was split in two zones - "small" & "partial"'''
 
+        message = '''---------------------------
+        The need for merging is due to overlap cutting through whole digit in half.
+        The current approach is to check the sizes of the chunks, but it turns out that combination
+        of digits also fit the size conditions.
+        Since animations also affect the grid image, which is the training source, we cannot afford
+        not to wait the animation end. 1sec gives clear capture on both the score and the grid.
+        This means that we will no longer have overlap in the score digits.
+        ---------------------------
+        '''.replace('    ', '')
+
+        print(message)
+
         part_sizes = ([ z[2]-z[1] for z in zones ])
         if verbose > 0:
             print('zones sizes', part_sizes)
@@ -199,14 +214,13 @@ class Screen:
                     if verbose > 0:
                         print('merged, thus advancing cycle to:', i-1, '&', i,
                                 'further +1 increment will execute at normal cycle end')
-
-                    # check if single final zone and add it to the final result,
-                    # because it cannot be processed as pair with subsequent one
-                    if i == len(zones)-1:
-                        new_zones.append(zones[i])
-
                 else:
                     new_zones.append(zones[i-1])
+
+                # check if single final zone and add it to the final result,
+                # because it cannot be processed as pair with subsequent one
+                if i == len(zones)-1:
+                    new_zones.append(zones[i])
 
                 i += 1
                 if verbose > 0:
@@ -216,7 +230,7 @@ class Screen:
             new_zones = zones
 
         if verbose > 0:
-            print([z[1:] for z in new_zones])
+            print('new zones', [z[1:] for z in new_zones])
 
         return new_zones
 
@@ -259,8 +273,16 @@ class Screen:
               - game over indicator
         '''
 
-        self._grab()
+        if self._init_flag:
+            self._grab()
+            self._init_flag = False
+            
         score_screen, grid_screen, y_offset = self._split_rois(self.raw_screen)
+        # if self._init_flag:
+        #     score_screen, grid_screen, y_offset = self._split_rois(self.raw_screen)
+        #     self._init_flag = False
+        # else:
+        #     score_screen, grid_screen, y_offset = self._split_rois(self.old_screen)
 
         if save_sample:
             colored = cv2.cvtColor(score_screen, cv2.COLOR_BGR2RGB)
@@ -296,6 +318,8 @@ class Screen:
             detected_score = -1
             print('failed score detection:', e)
 
+        time.sleep(1)
+        self._grab()
         return grid, detected_score, game_over
 
     def check_if_done(self, grid_screen):

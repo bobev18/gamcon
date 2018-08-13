@@ -76,6 +76,9 @@ class Game:
             display_rois=display_rois
             )
 
+        if cv2.waitKey(5) & 0xFF == ord('p'):
+            _ = input('Enter your input:')
+
         if cv2.waitKey(5) & 0xFF == ord('q'):
             self.destroy()
             exit(1)

@@ -128,7 +128,7 @@ for e in range(EPISODES):
         state, reward, done = env.render()
     # apparently the Conv2D wants a 4D shape like (1,64,64,1)
     state = shapeState(state)
-    for time in range(500):
+    for timee in range(500):
         action = agent.act(state)
 
         #!# in the subsequent line, it is unclear what is the object that normally would be
@@ -146,16 +146,23 @@ for e in range(EPISODES):
         frames.append(pix)
         next_state = shapeState(pix)
         reward = reward if not done else -500
-        print(time, ')', reward)
+        print(timee, ')', reward)
         agent.write_state(state, action, reward, next_state, done)
         state = next_state
         if done:
             print("episode: {}/{}, score: {}, e: {:.2}"
-                  .format(e, EPISODES, time, agent.epsilon))
-            if time > max_score:
-                max_score = time
+                  .format(e, EPISODES, timee, agent.epsilon))
+            if timee > max_score:
+                max_score = timee
                 best = frames
             break
+
+        # # step through
+        # _ = input('Enter your input:')
+        # for i in list(range(4))[::-1]:
+        #     print(i+1)
+        #     time.sleep(1)
+
     if len(agent.q_table) > batch_size:
         agent.replay(batch_size)
 
