@@ -1,0 +1,6 @@
+numpy
+pyscreenshot
+ # also needs sudo apt-get install imagemagick
+Pillow
+pynput
+opencv-python

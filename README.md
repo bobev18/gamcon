@@ -13,26 +13,21 @@ train_on_overlapping_digits.ipynb -- uses raw images of scores with overlap to
                                == flatten images
                                == train ML
 
-
-
-
-
-unchecked ==
-  learn_alt.py
-  environment.py
-
-
-the new digit split seems to miss digits
-
-
 TODO:
-
- - adjust the score update method
- - run tests with overlapping and record more samples
 
  - encapsulate keyboard interactions
  - find a way to send signal to the app, while focus is on the game (i.e. via mouse)
  - refactor score
  - clean/refresh requirements
- - have the min constants dependent on environment
+ - have the min_size constants dependent on environment
 
+https://docs.python.org/3/library/venv.html#module-venv
+python3 -m venv ~/env/gamcon
+source ~/env/gamcon/bin/activate
+...
+pip3 install --no-cache-dir -r requirements.txt
+
+
+
+after_all():
+deactivate

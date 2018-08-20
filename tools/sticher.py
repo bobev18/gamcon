@@ -1,14 +1,33 @@
+import os
+if os.name == 'nt':
+    from PIL import ImageGrab
+    from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY, R_KEY
+    KEYLIST = [W_KEY, A_KEY, S_KEY, D_KEY]
+    RESET_KEY = R_KEY
+    def tap(key):
+        PressKey(key)
+        ReleaseKey(key)
+    from ctypes import windll
+    user32 = windll.user32
+    user32.SetProcessDPIAware()
+    BOX = (3280, 15, 3830, 550)
+
+else:
+    import pyscreenshot as ImageGrab
+    from pynput.keyboard import Key, Controller
+    KEYLIST = ['w', 'a', 's', 'd']
+    RESET_KEY = 'r'
+    keyboard = Controller()
+    def tap(key):
+        keyboard.press(key)
+        keyboard.release(key)
+    BOX = (50, 50, 1200, 1400)
+
 import numpy as np
-from PIL import ImageGrab
 import cv2
 import time
-from directkeys import ReleaseKey, PressKey, W_KEY, A_KEY, S_KEY, D_KEY
-# import pyautogui
 import os, pickle
 
-from ctypes import windll
-user32 = windll.user32
-user32.SetProcessDPIAware()
 
 
 SAMPLE_FOLDER = 'samples'

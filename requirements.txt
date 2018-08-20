@@ -1,9 +1,11 @@
-pip install numpy
-pip install Pillow
-pip install opencv-python
-pip install tensorflow
-pip install keras
-pip install sklearn
-
-pip3 install scikit-image
+numpy
+pyscreenshot #Linux only
+ # also needs sudo apt-get install imagemagick
+Pillow
+pynput       #Linux only
+opencv-python
+tensorflow
+keras
+sklearn
+scikit-image
 cv2
